@@ -1,2 +1,2 @@
 build:
-	docker build --rm=true -t rics3n/drone-ansible:2 .
+	docker build --rm=true -t uphy/drone-ansible:2 .

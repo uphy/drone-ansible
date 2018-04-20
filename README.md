@@ -15,7 +15,7 @@ The following is a sample configuration in your .drone.yml file:
 ```yaml
 pipeline:
   deploy-staging:
-    image: rics3n/drone-ansible:2
+    image: uphy/drone-ansible:2
     inventory: staging
     secrets: [ ssh_key ]
     when:
@@ -25,7 +25,7 @@ pipeline:
 ```yaml
 pipeline:
   deploy-staging:
-    image: rics3n/drone-ansible:2
+    image: uphy/drone-ansible:2
     inventories: [ staging, staging_2 ]
     secrets: [ ssh_key ]
     when:
@@ -37,7 +37,7 @@ To add the ssh key use drone secrets via the cli
 ```
 drone secret add \
   -repository user/repo \
-  -image rics3n/drone-ansible \
+  -image uphy/drone-ansible \
   -name ssh_key \
   -value @Path/to/.ssh/id_rsa
 ```
@@ -63,7 +63,7 @@ go test
 Build the docker image with the following commands:
 
 ```
-docker build --rm=true -t rics3n/drone-ansible:2 .
+docker build --rm=true -t uphy/drone-ansible:2 .
 ```
 
 Please note incorrectly building the image for the correct x64 linux and with
@@ -84,5 +84,5 @@ docker run --rm=true \
   -e DRONE_WORKSPACE=/go/src/github.com/username/test \
   -v $(pwd):/go/src/github.com/username/test \
   -w /go/src/github.com/username/test \
-  rics3n/drone-ansible:2
+  uphy/drone-ansible:2
 ```

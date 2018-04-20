@@ -1,6 +1,6 @@
 # Docker image for the Drone build runner
 #
-#     docker build --rm=true -t rics3n/drone-ansible .
+#     docker build --rm=true -t uphy/drone-ansible .
 
 FROM golang:1.9.2 AS builder
 WORKDIR  /go/src/github.com/alexellis/drone-ansible/

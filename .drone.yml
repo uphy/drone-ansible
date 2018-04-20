@@ -1,6 +1,6 @@
 workspace:
   base: /go
-  path: src/github.com/rics3n/drone-ansible
+  path: src/github.com/uphy/drone-ansible
 
 pipeline:
   test:
@@ -13,7 +13,7 @@ pipeline:
 
   publish:
     image: plugins/docker
-    repo: rics3n/drone-ansible:2
+    repo: uphy/drone-ansible:2
     secrets: [ docker_username, docker_password ]
     when:
       branch: master
