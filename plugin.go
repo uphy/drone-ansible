@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -76,7 +77,7 @@ func (p Plugin) Exec() error {
 
 func command(build Build, config Config, inventory string) *exec.Cmd {
 	var args []string
-	args = append(args, commandEnvVars(build))
+	args = append(args, commandEnvVars(build, config)...)
 	if config.SSHUser != "" {
 		args = append(args, "-u", config.SSHUser)
 	}
@@ -90,17 +91,23 @@ func commandVersion() *exec.Cmd {
 	return exec.Command(ansibleBin, "--version")
 }
 
-func commandEnvVars(build Build) string {
-	args := []string{
-		"-e ansible_ssh_private_key_file=/root/.ssh/id_rsa",
-		fmt.Sprintf("-e commit_sha=%s", build.SHA),
+func commandEnvVars(build Build, config Config) []string {
+	vars := map[string]string{}
+	if len(config.SSHKey) != 0 {
+		vars["ansible_ssh_private_key_file"] = "/root/.ssh/id_rsa"
 	}
-
+	if len(build.SHA) != 0 {
+		vars["commit_sha"] = build.SHA
+	}
 	if len(build.Tag) != 0 {
-		args = append(args, fmt.Sprintf("-e commit_tag=%s", build.Tag))
+		vars["commit_tag"] = build.Tag
 	}
 
-	return strings.Join(args, " ")
+	b, err := json.Marshal(vars)
+	if err != nil {
+		panic(fmt.Sprint("unexpected err: ", err))
+	}
+	return []string{"-e", string(b)}
 }
 
 // Trace writes each command to standard error (preceded by a ‘$ ’) before it
