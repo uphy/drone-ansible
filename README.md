@@ -8,6 +8,7 @@ The following parameters are used to configure this plugin:
 * `inventory_path`-  define the path in the project for ansible inventory files (default: provisioning/inventory)
 * `playbook` - define the playbook file (default: provisioning/provision.yml)
 * `ssh_key` - define the ssh-key to use for connecting to hosts
+* `ssh_user` - define the ssh-user to specify the SSH login user name
 
 The following is a sample configuration in your .drone.yml file:
 
