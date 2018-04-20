@@ -31,6 +31,7 @@ type (
 		Playbook      string
 		SSHKey        string
 		SSHUser       string
+		SSHPassphrase string
 	}
 
 	// Plugin defines the Ansible plugin parameters.

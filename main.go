@@ -46,6 +46,11 @@ func main() {
 			EnvVar: "SSH_KEY,PLUGIN_SSH_KEY",
 		},
 		cli.StringFlag{
+			Name:   "ssh-passphrase",
+			Usage:  "ssh passphrase for the private key",
+			EnvVar: "SSH_PASSPHRASE,PLUGIN_SSH_PASSPHRASE",
+		},
+		cli.StringFlag{
 			Name:   "path",
 			Usage:  "project base path",
 			EnvVar: "DRONE_WORKSPACE",
