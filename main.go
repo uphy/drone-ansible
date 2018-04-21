@@ -4,11 +4,18 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/uphy/drone-ansible/plugin"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/urfave/cli"
 )
 
 var build = "0" // build number set at compile-time
+
+const (
+	defaultPlaybook      = "provisioning/provision.yml"
+	defaultInventoryPath = "provisioning/inventory"
+)
 
 func main() {
 	app := cli.NewApp()
@@ -50,6 +57,11 @@ func main() {
 			Usage:  "ssh passphrase for the private key",
 			EnvVar: "SSH_PASSPHRASE,PLUGIN_SSH_PASSPHRASE",
 		},
+		cli.BoolFlag{
+			Name:   "debug",
+			Usage:  "debug flag",
+			EnvVar: "PLUGIN_DEBUG",
+		},
 		cli.StringFlag{
 			Name:   "path",
 			Usage:  "project base path",
@@ -73,20 +85,17 @@ func main() {
 }
 
 func run(c *cli.Context) error {
-	plugin := Plugin{
-		Build: Build{
-			Path: c.String("path"),
-			SHA:  c.String("commit.sha"),
-			Tag:  c.String("commit.tag"),
-		},
-		Config: Config{
-			InventoryPath: c.String("inventory-path"),
-			Inventories:   c.StringSlice("inventories"),
-			Playbook:      c.String("playbook"),
-			SSHKey:        c.String("ssh-key"),
-			SSHUser:       c.String("ssh-user"),
-		},
-	}
-
-	return plugin.Exec()
+	return plugin.New(&plugin.Build{
+		Path: c.String("path"),
+		SHA:  c.String("commit.sha"),
+		Tag:  c.String("commit.tag"),
+	}, &plugin.Config{
+		InventoryPath: c.String("inventory-path"),
+		Inventories:   c.StringSlice("inventories"),
+		Playbook:      c.String("playbook"),
+		SSHKey:        c.String("ssh-key"),
+		SSHUser:       c.String("ssh-user"),
+		SSHPassphrase: c.String("ssh-passphrase"),
+		Debug:         c.Bool("debug"),
+	}).Exec()
 }

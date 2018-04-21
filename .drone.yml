@@ -4,12 +4,12 @@ workspace:
 
 pipeline:
   test:
-    image: golang:1.6
+    image: golang:1.9
     environment:
       - CGO_ENABLED=0
     commands:
-      - go test -cover -coverprofile=coverage.out
-      - go build -ldflags "-s -w -X main.build=$DRONE_BUILD_NUMBER" -a -tags netgo
+      - go test -cover -coverprofile=coverage.out    
+      - go test -cover -coverprofile=coverage.out plugin/*
 
   publish:
     image: plugins/docker
