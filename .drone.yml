@@ -1,19 +1,19 @@
 workspace:
   base: /go
-  path: src/github.com/rics3n/drone-ansible
+  path: src/github.com/uphy/drone-ansible
 
 pipeline:
   test:
-    image: golang:1.6
+    image: golang:1.9
     environment:
       - CGO_ENABLED=0
     commands:
-      - go test -cover -coverprofile=coverage.out
-      - go build -ldflags "-s -w -X main.build=$DRONE_BUILD_NUMBER" -a -tags netgo
+      - go test -cover -coverprofile=coverage.out    
+      - go test -cover -coverprofile=coverage.out plugin/*
 
   publish:
     image: plugins/docker
-    repo: rics3n/drone-ansible:2
+    repo: uphy/drone-ansible:2
     secrets: [ docker_username, docker_password ]
     when:
       branch: master

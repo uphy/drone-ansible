@@ -4,11 +4,18 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/uphy/drone-ansible/plugin"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/urfave/cli"
 )
 
 var build = "0" // build number set at compile-time
+
+const (
+	defaultPlaybook      = "provisioning/provision.yml"
+	defaultInventoryPath = "provisioning/inventory"
+)
 
 func main() {
 	app := cli.NewApp()
@@ -36,9 +43,34 @@ func main() {
 			EnvVar: "PLUGIN_PLAYBOOK",
 		},
 		cli.StringFlag{
+			Name:   "ssh-user",
+			Usage:  "ssh user to access remote hosts",
+			EnvVar: "SSH_USER,PLUGIN_SSH_USER",
+		},
+		cli.StringFlag{
 			Name:   "ssh-key",
 			Usage:  "ssh key to access remote hosts",
 			EnvVar: "SSH_KEY,PLUGIN_SSH_KEY",
+		},
+		cli.StringFlag{
+			Name:   "ssh-passphrase",
+			Usage:  "ssh passphrase for the private key",
+			EnvVar: "SSH_PASSPHRASE,PLUGIN_SSH_PASSPHRASE",
+		},
+		cli.StringFlag{
+			Name:   "become-user",
+			Usage:  "become(sudo) user name",
+			EnvVar: "BECOME_USER,PLUGIN_BECOME_USER,SUDO_USER,PLUGIN_SUDO_USER",
+		},
+		cli.StringFlag{
+			Name:   "become-password",
+			Usage:  "become(sudo) password",
+			EnvVar: "BECOME_PASSWORD,PLUGIN_BECOME_PASSWORD,SUDO_PASSWORD,PLUGIN_SUDO_PASSWORD",
+		},
+		cli.BoolFlag{
+			Name:   "debug",
+			Usage:  "debug flag",
+			EnvVar: "PLUGIN_DEBUG",
 		},
 		cli.StringFlag{
 			Name:   "path",
@@ -63,19 +95,19 @@ func main() {
 }
 
 func run(c *cli.Context) error {
-	plugin := Plugin{
-		Build: Build{
-			Path: c.String("path"),
-			SHA:  c.String("commit.sha"),
-			Tag:  c.String("commit.tag"),
-		},
-		Config: Config{
-			InventoryPath: c.String("inventory-path"),
-			Inventories:   c.StringSlice("inventories"),
-			Playbook:      c.String("playbook"),
-			SSHKey:        c.String("ssh-key"),
-		},
-	}
-
-	return plugin.Exec()
+	return plugin.New(&plugin.Build{
+		Path: c.String("path"),
+		SHA:  c.String("commit.sha"),
+		Tag:  c.String("commit.tag"),
+	}, &plugin.Config{
+		InventoryPath:  c.String("inventory-path"),
+		Inventories:    c.StringSlice("inventories"),
+		Playbook:       c.String("playbook"),
+		SSHKey:         c.String("ssh-key"),
+		SSHUser:        c.String("ssh-user"),
+		SSHPassphrase:  c.String("ssh-passphrase"),
+		BecomeUser:     c.String("become-user"),
+		BecomePassword: c.String("become-password"),
+		Debug:          c.Bool("debug"),
+	}).Exec()
 }

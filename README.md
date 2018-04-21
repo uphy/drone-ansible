@@ -5,16 +5,20 @@ The following parameters are used to configure this plugin:
 
 * `inventory` - define the inventory file (default: staging)
 * `inventories` - define multiple inventory files to deploy
-* `inventory-path`-  define the path in the project for ansible inventory files (default: provisioning/inventory)
+* `inventory_path`-  define the path in the project for ansible inventory files (default: provisioning/inventory)
 * `playbook` - define the playbook file (default: provisioning/provision.yml)
-* `ssh-key` - define the ssh-key to use for connecting to hosts
+* `ssh_key` - define the ssh_key to use for connecting to hosts
+* `ssh_user` - define the ssh_user to specify the SSH login user name
+* `ssh_passphrase` - define the passphrase for the SSH private key
+* `become_user` - define the `become`(sudo) username
+* `become_password` - define the `become`(sudo) password
 
 The following is a sample configuration in your .drone.yml file:
 
 ```yaml
 pipeline:
   deploy-staging:
-    image: rics3n/drone-ansible:2
+    image: uphy/drone-ansible:2
     inventory: staging
     secrets: [ ssh_key ]
     when:
@@ -24,7 +28,7 @@ pipeline:
 ```yaml
 pipeline:
   deploy-staging:
-    image: rics3n/drone-ansible:2
+    image: uphy/drone-ansible:2
     inventories: [ staging, staging_2 ]
     secrets: [ ssh_key ]
     when:
@@ -36,7 +40,7 @@ To add the ssh key use drone secrets via the cli
 ```
 drone secret add \
   -repository user/repo \
-  -image rics3n/drone-ansible \
+  -image uphy/drone-ansible \
   -name ssh_key \
   -value @Path/to/.ssh/id_rsa
 ```
@@ -62,8 +66,7 @@ go test
 Build the docker image with the following commands:
 
 ```
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -tags netgo
-docker build --rm=true -t rics3n/drone-ansible:2 .
+docker build --rm=true -t uphy/drone-ansible:2 .
 ```
 
 Please note incorrectly building the image for the correct x64 linux and with
@@ -84,5 +87,5 @@ docker run --rm=true \
   -e DRONE_WORKSPACE=/go/src/github.com/username/test \
   -v $(pwd):/go/src/github.com/username/test \
   -w /go/src/github.com/username/test \
-  rics3n/drone-ansible:2
+  uphy/drone-ansible:2
 ```
