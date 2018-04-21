@@ -48,13 +48,14 @@ func TestEnvironmentTearDown(t *testing.T) {
 func TestEnvironmentGenerateScript(t *testing.T) {
 	testEnvironmentGenerateScript(t, Config{
 		SSHUser:       "user1",
+		BecomeUser:    "user2",
 		SSHKey:        "key",
 		SSHPassphrase: "passphrase",
 		Playbook:      "playbook.yml",
 	}, `#!/bin/sh -u
 eval $(ssh-agent) > /dev/null || exit $?
 echo "$SSH_PASSPHRASE" | SSH_ASKPASS="tmp/askpass.sh" ssh-add "tmp/id_rsa" > /dev/null 2>&1 || exit $?
-/usr/bin/ansible-playbook -e "$1" -u "user1" -i "$2" "path/playbook.yml" 
+/usr/bin/ansible-playbook -e "@tmp/vars.sh" -u "user1" --become-user "user2" -i "$1" "path/playbook.yml" 
 ssh-agent -k > /dev/null || exit $?
 `)
 	testEnvironmentGenerateScript(t, Config{
@@ -64,13 +65,13 @@ ssh-agent -k > /dev/null || exit $?
 	}, `#!/bin/sh -u
 eval $(ssh-agent) > /dev/null || exit $?
 echo "$SSH_PASSPHRASE" | SSH_ASKPASS="tmp/askpass.sh" ssh-add "tmp/id_rsa" > /dev/null 2>&1 || exit $?
-/usr/bin/ansible-playbook -e "$1" -i "$2" "path/playbook.yml" 
+/usr/bin/ansible-playbook -e "@tmp/vars.sh" -i "$1" "path/playbook.yml" 
 ssh-agent -k > /dev/null || exit $?
 `)
 	testEnvironmentGenerateScript(t, Config{
 		Playbook: "playbook.yml",
 	}, `#!/bin/sh -u
-/usr/bin/ansible-playbook -e "$1" -i "$2" "path/playbook.yml" 
+/usr/bin/ansible-playbook -e "@tmp/vars.sh" -i "$1" "path/playbook.yml" 
 `)
 }
 
@@ -104,17 +105,14 @@ func TestEnvironmentCommand(t *testing.T) {
 	defer e.tearDown()
 	cmd := e.command("inventory")
 	args := cmd.Args
-	if len(args) != 3 {
+	if len(args) != 2 {
 		t.Errorf("want %d but %d", 3, len(args))
 	}
 	if args[0] != e.files.script {
 		t.Errorf("want %s but %s", e.files.script, args[0])
 	}
-	if extraVars := e.extraVars(); args[1] != extraVars {
-		t.Errorf("want %s but %s", extraVars, args[1])
-	}
-	if args[2] != "inventory" {
-		t.Errorf("want %s but %s", "inventory", args[2])
+	if args[1] != "inventory" {
+		t.Errorf("want %s but %s", "inventory", args[1])
 	}
 	passphraseSet := false
 	ansibleConfigSet := false
@@ -135,29 +133,31 @@ func TestEnvironmentCommand(t *testing.T) {
 }
 
 func TestEnvironmentExtraVars(t *testing.T) {
-	testEnvironmentExtraVars(t, "key", map[string]string{
+	testEnvironmentExtraVars(t, "key", "pass", map[string]string{
 		"commit_tag":                   "tag",
 		"commit_sha":                   "sha",
 		"ansible_ssh_private_key_file": "/id_rsa",
+		"ansible_become_pass":          "pass",
 	})
-	testEnvironmentExtraVars(t, "", map[string]string{
+	testEnvironmentExtraVars(t, "", "", map[string]string{
 		"commit_tag": "tag",
 		"commit_sha": "sha",
 	})
-	testEnvironmentExtraVars(t, "", map[string]string{
+	testEnvironmentExtraVars(t, "", "", map[string]string{
 		"commit_tag": "tag",
 	})
-	testEnvironmentExtraVars(t, "", map[string]string{
+	testEnvironmentExtraVars(t, "", "", map[string]string{
 		"commit_sha": "sha",
 	})
 }
 
-func testEnvironmentExtraVars(t *testing.T, key string, vars map[string]string) {
+func testEnvironmentExtraVars(t *testing.T, key string, becomePass string, vars map[string]string) {
 	e := newEnvironment(&Build{
 		Tag: vars["commit_tag"],
 		SHA: vars["commit_sha"],
 	}, &Config{
-		SSHKey: key,
+		SSHKey:         key,
+		BecomePassword: becomePass,
 	})
 	if err := e.setUp(); err != nil {
 		t.Fatalf("failed to setup: %v", err)

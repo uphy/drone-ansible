@@ -10,6 +10,8 @@ The following parameters are used to configure this plugin:
 * `ssh_key` - define the ssh_key to use for connecting to hosts
 * `ssh_user` - define the ssh_user to specify the SSH login user name
 * `ssh_passphrase` - define the passphrase for the SSH private key
+* `become_user` - define the `become`(sudo) username
+* `become_password` - define the `become`(sudo) password
 
 The following is a sample configuration in your .drone.yml file:
 

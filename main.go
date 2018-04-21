@@ -57,6 +57,16 @@ func main() {
 			Usage:  "ssh passphrase for the private key",
 			EnvVar: "SSH_PASSPHRASE,PLUGIN_SSH_PASSPHRASE",
 		},
+		cli.StringFlag{
+			Name:   "become-user",
+			Usage:  "become(sudo) user name",
+			EnvVar: "BECOME_USER,PLUGIN_BECOME_USER,SUDO_USER,PLUGIN_SUDO_USER",
+		},
+		cli.StringFlag{
+			Name:   "become-password",
+			Usage:  "become(sudo) password",
+			EnvVar: "BECOME_PASSWORD,PLUGIN_BECOME_PASSWORD,SUDO_PASSWORD,PLUGIN_SUDO_PASSWORD",
+		},
 		cli.BoolFlag{
 			Name:   "debug",
 			Usage:  "debug flag",
@@ -90,12 +100,14 @@ func run(c *cli.Context) error {
 		SHA:  c.String("commit.sha"),
 		Tag:  c.String("commit.tag"),
 	}, &plugin.Config{
-		InventoryPath: c.String("inventory-path"),
-		Inventories:   c.StringSlice("inventories"),
-		Playbook:      c.String("playbook"),
-		SSHKey:        c.String("ssh-key"),
-		SSHUser:       c.String("ssh-user"),
-		SSHPassphrase: c.String("ssh-passphrase"),
-		Debug:         c.Bool("debug"),
+		InventoryPath:  c.String("inventory-path"),
+		Inventories:    c.StringSlice("inventories"),
+		Playbook:       c.String("playbook"),
+		SSHKey:         c.String("ssh-key"),
+		SSHUser:        c.String("ssh-user"),
+		SSHPassphrase:  c.String("ssh-passphrase"),
+		BecomeUser:     c.String("become-user"),
+		BecomePassword: c.String("become-password"),
+		Debug:          c.Bool("debug"),
 	}).Exec()
 }

@@ -17,13 +17,15 @@ type (
 
 	//Config defined the ansible configuration params
 	Config struct {
-		InventoryPath string
-		Inventories   []string
-		Playbook      string
-		SSHKey        string
-		SSHUser       string
-		SSHPassphrase string
-		Debug         bool
+		InventoryPath  string
+		Inventories    []string
+		Playbook       string
+		SSHKey         string
+		SSHUser        string
+		SSHPassphrase  string
+		Debug          bool
+		BecomeUser     string
+		BecomePassword string
 	}
 
 	// Plugin defines the Ansible plugin parameters.

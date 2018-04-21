@@ -23,6 +23,7 @@ type environment struct {
 		idrsa        string
 		dummyAskPass string
 		script       string
+		varsFile     string
 	}
 }
 
@@ -73,6 +74,10 @@ ssh_args = -F "%s"
 		}
 	}
 
+	if err := e.writeTempFile("vars.sh", e.extraVars(), 0600, &e.files.varsFile, true); err != nil {
+		return err
+	}
+
 	// generate script
 	return e.writeTempFile("script.sh", e.generateScript(), 0700, &e.files.script, true)
 }
@@ -97,11 +102,14 @@ func (e *environment) generateScript() string {
 		script += fmt.Sprintf(`echo "$SSH_PASSPHRASE" | SSH_ASKPASS="%s" ssh-add "%s" > /dev/null 2>&1 || exit $?
 `, e.files.dummyAskPass, e.files.idrsa)
 	}
-	ansibleCommand := []string{ansibleBin, "-e", `"$1"`}
+	ansibleCommand := []string{ansibleBin, "-e", fmt.Sprintf(`"@%s"`, e.files.varsFile)}
 	if e.config.SSHUser != "" {
 		ansibleCommand = append(ansibleCommand, "-u", fmt.Sprintf(`"%s"`, e.config.SSHUser))
 	}
-	ansibleCommand = append(ansibleCommand, "-i", `"$2"`, fmt.Sprintf(`"%s"`, filepath.Join(e.build.Path, e.config.Playbook)), "\n")
+	if e.config.BecomeUser != "" {
+		ansibleCommand = append(ansibleCommand, "--become-user", fmt.Sprintf(`"%s"`, e.config.BecomeUser))
+	}
+	ansibleCommand = append(ansibleCommand, "-i", `"$1"`, fmt.Sprintf(`"%s"`, filepath.Join(e.build.Path, e.config.Playbook)), "\n")
 	script += strings.Join(ansibleCommand, " ")
 	if e.config.SSHKey != "" {
 		script += "ssh-agent -k > /dev/null || exit $?\n"
@@ -137,7 +145,7 @@ func (e *environment) commands() []*exec.Cmd {
 }
 
 func (e *environment) command(inventory string) *exec.Cmd {
-	cmd := exec.Command(e.files.script, e.extraVars(), filepath.Join(e.build.Path, inventory))
+	cmd := exec.Command(e.files.script, filepath.Join(e.build.Path, inventory))
 	cmd.Env = []string{
 		fmt.Sprintf("SSH_PASSPHRASE=%s", e.config.SSHPassphrase),
 		fmt.Sprintf("ANSIBLE_CONFIG=%s", e.files.ansibleCfg),
@@ -149,6 +157,9 @@ func (e *environment) extraVars() string {
 	vars := map[string]string{}
 	if len(e.config.SSHKey) != 0 {
 		vars["ansible_ssh_private_key_file"] = e.files.idrsa
+	}
+	if len(e.config.BecomePassword) != 0 {
+		vars["ansible_become_pass"] = e.config.BecomePassword
 	}
 	if len(e.build.SHA) != 0 {
 		vars["commit_sha"] = e.build.SHA
