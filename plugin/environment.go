@@ -137,7 +137,7 @@ func (e *environment) commands() []*exec.Cmd {
 }
 
 func (e *environment) command(inventory string) *exec.Cmd {
-	cmd := exec.Command(e.files.script, e.extraVars(), inventory)
+	cmd := exec.Command(e.files.script, e.extraVars(), filepath.Join(e.build.Path, inventory))
 	cmd.Env = []string{
 		fmt.Sprintf("SSH_PASSPHRASE=%s", e.config.SSHPassphrase),
 		fmt.Sprintf("ANSIBLE_CONFIG=%s", e.files.ansibleCfg),
